@@ -12,7 +12,7 @@ def configuration(parent_package='',top_path=None):
 
 def main():
     from numpy.distutils.core import setup
-    setup(name='pyFIR',
+    setup(name='pyfir',
           version='0.1',
           description='Simple tool to do FIR analysis on fMRI data',
           author='Gilles de Hollander',

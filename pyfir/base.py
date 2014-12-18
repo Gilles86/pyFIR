@@ -15,7 +15,7 @@ class FIR:
         if not resolution:
             resolution = TR
 
-        n_impulses_per_condition = len_impulse / resolution
+        n_impulses_per_condition = np.ceil(len_impulse / resolution) + 1
 
         X = FIR.make_fir_design_matrix(onsets.values(), len_impulse, resolution, TR, self.signal.shape[0])
 
@@ -29,7 +29,7 @@ class FIR:
             resid = Y - Y_
             var = np.diag(np.linalg.pinv(X.T.dot(X)).dot(resid.T.dot(resid) / (X.shape[0] - X.shape[1])))
         
-        times = np.arange(0, len_impulse, resolution)
+        times = np.arange(0, n_impulses_per_condition) * resolution
 
         fir_heights = []
         fir_vars = []
@@ -37,6 +37,7 @@ class FIR:
             fir_heights.append(beta[i*n_impulses_per_condition:(i+1)*n_impulses_per_condition])
             fir_vars.append(var[i*n_impulses_per_condition:(i+1)*n_impulses_per_condition])      
 
+        dof = X.shape[0] - X.shape[1] - 1
 
         return FIRResults(self, onsets.keys(), times, fir_heights, fir_vars,)
 
@@ -49,14 +50,13 @@ class FIR:
         
         # How many regressors do we need per condition?/How many timepoints
         # Do we use to model the HRF?
-        n_fir_regressors_per_condition = len_impulse / resolution
+        n_fir_regressors_per_condition = np.ceil(len_impulse / resolution) + 1
         
         # Number of TRs we use for that
         n_trs_per_trial = int(len_impulse / TR)    
         
         # Create an empty design matrix
         X = np.zeros((n_samples, len(onsets) * n_fir_regressors_per_condition))
-        print X.shape
 
         # iterate over the conditions
         for condition, onsets_conditions in enumerate(onsets):
